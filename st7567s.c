@@ -243,3 +243,25 @@ void ST7567_Init(void)
     ST7567_SetContrast(0x10);
     ST7567_Flush();
 }
+
+void ST7567_SetRotation(bool inverted)
+{
+    uint8_t cmds[5];
+    uint8_t len = 0;
+    const uint8_t OFFSET = 4;
+
+    if (inverted) {
+        cmds[len++] = 0xA1;
+        cmds[len++] = 0xC0;
+    } else {
+        cmds[len++] = 0xA0;
+        cmds[len++] = 0xC8;
+    }
+
+    cmds[len++] = 0x40;
+    cmds[len++] = 0x00 | (OFFSET & 0x0F);
+    cmds[len++] = 0x10;
+
+    st7567_cmd(cmds, len);
+}
+
