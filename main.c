@@ -6,25 +6,29 @@ int main(void)
 	SCB->CPACR |= (0xF << 20);
 
     SysTick_Config(8000000 / 1000);
+
     Uart2_Init();
-
-    UART2_SendString("System started\r\n");
-    delay_ms(100);
-
     Uart1_Init();
-    UBX_Init();
+    I2C_Init();
 
-    UART2_SendString("GPS init done\r\n");
+    GPS_Init();
+    ST7567_Init();
+
+
+    ST7567_SetCursor(0, 32);
+    ST7567_Puts("System starting");
+    ST7567_Flush();
+    delay_ms(2000);
+
+    ST7567_Clear();
+
 
     while(1)
-    {
+        {
+            GPS_ProcessData();
 
-        GPS_ProcessData();
+            GpsSendToPC();
 
-
-        GPS_SendLineToPC();
-
-
-    }
+            GpsDisplayLCD();
+        }
 }
-
