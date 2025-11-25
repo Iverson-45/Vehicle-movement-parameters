@@ -24,3 +24,9 @@ GPS module: U-blox NEO-M8N
 IMU + GYRO: BMI160
 
 Display: 2.54 inch LCD 128x64 ST7567s
+
+Stages:
+--------
+
+Display speed
+![lcd](https://github.com/user-attachments/assets/4d3fb77a-be4d-41bc-baa1-7e233f1c2779)
