@@ -34,6 +34,7 @@ void ST7567_DrawBitmap(const uint8_t *bmp, uint16_t w, uint16_t h, int x, int y)
 void ST7567_ScrollH(int offset);
 void ST7567_ScrollV(int pages);
 void ST7567_Sleep(bool enable);
+void ST7567_SetRotation(bool inverted);
 
 void ST7567_SetCursor(uint8_t col, uint8_t row);
 void ST7567_Putc(char c);
@@ -42,3 +43,4 @@ void ST7567_Printf(const char *fmt, ...);
 
 
 #endif // ST7567S_H
+
