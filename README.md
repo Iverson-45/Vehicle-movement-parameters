@@ -29,4 +29,5 @@ Stages:
 --------
 
 Display speed
+
 ![lcd](https://github.com/user-attachments/assets/4d3fb77a-be4d-41bc-baa1-7e233f1c2779)
