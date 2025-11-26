@@ -8,8 +8,6 @@
 #include "st7567s.h"
 #include "i2c.h"
 
-
-extern float V;
 extern volatile uint8_t gps_line_ready;
 
 
@@ -19,12 +17,7 @@ void UBX_SendCommand(const uint8_t* data, uint16_t len);
 
 void USART1_EXTI25_IRQHandler(void);
 void GPS_ProcessData(void);
-uint8_t GPS_IsLineReady(void);
-const char* GPS_GetLine(void);
-void GPS_ClearLine(void);
-
-
 void GpsSendToPC(void);
 void GpsDisplayLCD(void);
 
-#endif 
+#endif
