@@ -89,6 +89,42 @@ void Uart1Pins(void) //uart to GPS
 	GPIOA->AFR[1] |=  ((0x7 << GPIO_AFRH_AFRH1_Pos) | (0x7 << GPIO_AFRH_AFRH2_Pos));
 }
 
+void Init_GPIO_Interrupt(void) // PA1 external interrupt for BMI160 INT1
+{
+	//Turn on clock for port A
+	if (!(RCC->AHBENR & RCC_AHBENR_GPIOAEN))
+	{
+		RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+	}
+
+    // PA1 input
+    GPIOA->MODER &= ~(GPIO_MODER_MODER1);
+
+    // PA1 pull-down
+    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR1);
+    GPIOA->PUPDR |=  (GPIO_PUPDR_PUPDR1_1);   // 10 = pull-down
+
+    // turn on SYSCFG
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
+    // connect EXTI1 to PA1
+    SYSCFG->EXTICR[0] &= ~(SYSCFG_EXTICR1_EXTI1);
+    SYSCFG->EXTICR[0] |=  (SYSCFG_EXTICR1_EXTI1_PA);
+
+    // activate EXTI1
+    EXTI->IMR |= (1 << 1);
+
+    // Rising edge only
+    EXTI->RTSR |= (1 << 1);
+    EXTI->FTSR &= ~(1 << 1);
+
+    // clear flags
+    EXTI->PR |= (1 << 1);
+
+    // NVIC
+    NVIC_SetPriority(EXTI1_IRQn, 2);
+    NVIC_EnableIRQ(EXTI1_IRQn);
+}
 
 
 
