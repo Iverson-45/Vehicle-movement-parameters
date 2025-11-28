@@ -1,17 +1,9 @@
 #include "gps.h"
 
 
-#define GPS_BUF_SIZE 256
+volatile char buffer[128];
 
-static volatile char gps_buffer[GPS_BUF_SIZE];
-static volatile uint16_t gps_write_idx = 0;
-static volatile uint16_t gps_read_idx = 0;
-
-static char gps_line[128];
-static int gps_line_idx = 0;
-volatile uint8_t gps_line_ready = 0;
-
-static uint8_t last_speed = 255;
+volatile uint8_t gps_ready_flag = 0;
 
 
 const uint8_t UBX_RATE_5HZ[] = {
@@ -67,112 +59,78 @@ void GPS_Init(void)
     UBX_SendCommand(UBX_MSG_ENABLE_VTG, sizeof(UBX_MSG_ENABLE_VTG));
 }
 
-
 void USART1_EXTI25_IRQHandler(void)
 {
-	uint32_t isr = USART1->ISR;
+	static uint8_t index =0;
 
-	if (isr & USART_ISR_RXNE)
+	if (USART1->ISR & USART_ISR_RXNE)
 	{
-		uint8_t rx_data = (uint8_t)USART1->RDR;
-
-		gps_buffer[gps_write_idx++] = rx_data;
-		if (gps_write_idx >= GPS_BUF_SIZE)
+		if(USART1->RDR == '\n')
 		{
-				gps_write_idx = 0;
+			buffer[index] = '\0';
+
+			gps_ready_flag = 1;
+
+			index = 0;
 		}
 
-	}
+		else
+		{
+			buffer[index] = USART1->RDR;
 
-	if (isr & USART_ISR_ORE)
+			index++;
+		}
+	}
+}
+
+
+float ParseSpeed(void)
+{
+	uint8_t CommaCounter = 0;
+
+	char *p = buffer;
+
+	while(*p != '\0' && CommaCounter < 7)
 	{
-	USART1->ICR |= USART_ICR_ORECF;
+		if(*p == ',')
+		{
+			CommaCounter++;
+		}
+
+		p++;
 	}
+
+	char SpeedBuf[8];
+
+	char *q = SpeedBuf;
+
+	while(*p !=',')
+	{
+		*q = *p++;
+
+		q++;
+	}
+
+	*q = '\0';
+
+	return atof(SpeedBuf);
 }
 
-static char GPS_ReadChar(void)
-{
-    char c = gps_buffer[gps_read_idx];
-    gps_read_idx = (gps_read_idx + 1) % GPS_BUF_SIZE;
-    return c;
-}
 
-void GPS_ProcessData(void)
-{
-    while (gps_write_idx != gps_read_idx)
-    {
-        char c = GPS_ReadChar();
 
-        if (c == '\n')
-        {
-            gps_line[gps_line_idx] = '\0';
-            gps_line_idx = 0;
-            gps_line_ready = 1;
-        }
-        else if (c != '\r')
-        {
-            if (gps_line_idx < sizeof(gps_line)-1)
-                gps_line[gps_line_idx++] = c;
-        }
-    }
-}
 
-void GpsSendToPC(void)
-{
-    if (!gps_line_ready) {
-        return;
-    }
 
-    const char* line = gps_line;
 
-    UART2_SendString(line);
-    UART2_SendString("\r\n");
-}
 
-static uint8_t parse_speed_from_line(const char* line)
-{
-    uint8_t comma_count = 0;
-    uint8_t speed = 0;
 
-    while(*line != '\0')
-    {
-        if(*line == ',')
-        {
-        	comma_count++;
-        }
 
-		else if(comma_count == 7 && *line >= '0' && *line <= '9')
-        {
-            speed = speed*10 + (*line - '0');
-        }
 
-        else if(comma_count > 7)
-            break;
 
-        line++;
-    }
 
-    return speed;
-}
 
-void GpsDisplayLCD(void)
-{
-    if (!gps_line_ready) return;
 
-    uint8_t speed = parse_speed_from_line(gps_line);
 
-    if(speed != last_speed)
-    {
-        last_speed = speed;
 
-        char buffor[16];
 
-        sprintf(buffor, "Speed: %d Km/h", speed);
 
-        ST7567_SetCursor(4, 32);
-        ST7567_Puts(buffor);
-        ST7567_Flush();
-    }
 
-    gps_line_ready = 0;
-}
