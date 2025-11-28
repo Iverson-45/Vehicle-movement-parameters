@@ -30,16 +30,31 @@ int main(void)
     ST7567_Flush();
 
 
-
+    UART2_SendString("Start\n\r");
 
     char buffor[64];
 
     BMI160_Data imu;
+
+    //uint8_t Lcd_counter = 0;
+
+    char chuj[16];
+
     while(1)
 	{
-            GPS_ProcessData();
-            GpsSendToPC();
-            GpsDisplayLCD();
+            if (gps_ready_flag)
+            {
+            	sprintf(chuj,"speed: %.2f", ParseSpeed());
+				UART2_SendString((const char *)chuj);
+				UART2_SendString("\r\n");
+
+				UART2_SendString((const char *)buffer);
+				UART2_SendString("\r\n");
+
+				gps_ready_flag = 0;
+
+				//Lcd_counter++;
+            }
 
             if (bmi160_data_ready)
 			{
@@ -50,5 +65,18 @@ int main(void)
 
 				bmi160_data_ready = 0;
 			}
+
+            /*if (Lcd_counter == 3)
+            {
+            	ST7567_Clear();
+
+            	ST7567_SetCursor(4, 32);
+
+            	ST7567_Puts(chuj);
+
+            	ST7567_Flush();
+
+            	Lcd_counter = 0;
+            }*/
 	}
 }
