@@ -1,7 +1,7 @@
 #ifndef I2C_H
 #define I2C_H
 
-#include "stm32f3xx.h"
+#include "stm32f4xx.h"
 #include "gpio.h"
 
 void I2C_Init(void);

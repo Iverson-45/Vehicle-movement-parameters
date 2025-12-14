@@ -25,13 +25,13 @@ void BMI160_Init(void)
     BMI160_Write(0x7E, 0x15); //Gyro Normal mode
     delay_ms(80);
 
-    BMI160_Write(0x40, 0x28); //Accel ODR=100Hz
+    BMI160_Write(0x40, 0x28); //Accel 0x28 ODR=100Hz, 0x26 ODR=25Hz
     delay_us(500);
 
     BMI160_Write(0x41, 0x0C); //Accel range=+-16g
     delay_us(2);
 
-    BMI160_Write(0x42, 0x28); //Gyro ODR=100Hz
+    BMI160_Write(0x42, 0x28); //Gyro 0x28 ODR=100Hz, 0x26 ODR=25Hz
     delay_us(2);
 
 	BMI160_Write(0x43, 0x00); //Gyro range =+-2000*
@@ -43,7 +43,7 @@ void BMI160_Init(void)
 	BMI160_Write(0x56, 0x80); // Data ready to int1 pin
 	delay_us(2);
 
-	BMI160_Write(0x53, 0x0A); // int1 config: output enable, push-pull, active high
+	BMI160_Write(0x53, 0x0A); // INT1 config: output enable, push-pull, active high
 	delay_us(2);
 }
 
@@ -65,12 +65,18 @@ void BMI160_ReadData(BMI160_Data *d)
 	d->az = (int16_t)((buffer[5]<<8)|buffer[4]) * 16.0f * 9.80665f / 32768.0f;
 }
 
-void EXTI1_IRQHandler(void)
+void EXTI2_IRQHandler(void)
 {
-    if (EXTI->PR & (1 << 1))
+    if (EXTI->PR & (1 << 2))
     {
-        EXTI->PR |= (1 << 1);
+        EXTI->PR |=(1 << 2);
 
         bmi160_data_ready = 1;
     }
 }
+
+
+
+
+
+

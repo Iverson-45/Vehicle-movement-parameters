@@ -2,142 +2,111 @@
 
 void I2cPins(void)
 {
-	//B6 - SCL, B7 - SDA
+    // B6 - SCL, B7 - SDA
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
 
-	//Turn on clock for port B
-	if (!(RCC->AHBENR & RCC_AHBENR_GPIOBEN))
-	{
-		RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-	}
+    // Alternate function (10)
+    GPIOB->MODER &= ~(GPIO_MODER_MODER6 | GPIO_MODER_MODER7);
+    GPIOB->MODER |= (GPIO_MODER_MODER6_1 | GPIO_MODER_MODER7_1);
 
-	//alternate function
-	GPIOB->MODER &= ~(GPIO_MODER_MODER6 | GPIO_MODER_MODER7);
-	GPIOB->MODER |= (GPIO_MODER_MODER6_1 | GPIO_MODER_MODER7_1);
+    // Open-drain (1)
+    GPIOB->OTYPER |= (GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7);
 
-	//open-drain
-	GPIOB->OTYPER &= ~(GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7);
-	GPIOB->OTYPER |= (GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7);
+    // High speed (10) lub Very High speed (11)
+    GPIOB->OSPEEDR |= (GPIO_OSPEEDR_OSPEED6_1 | GPIO_OSPEEDR_OSPEED7_1);
 
-	//high speed
-	GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
-	GPIOB->OSPEEDR |= (GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
 
-	//pull-up
-	GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPDR6 | GPIO_PUPDR_PUPDR7);
-	GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
+    // Pull-up (01)
+    GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPDR6 | GPIO_PUPDR_PUPDR7);
+    GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
 
-	//AF4 = I2C
-	GPIOB->AFR[0] &= ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7);
-	GPIOB->AFR[0] |= (0x4 << GPIO_AFRL_AFRL6_Pos) | (0x4 << GPIO_AFRL_AFRL7_Pos);
-
+    // AF4 = I2C1 B6 i B7
+    GPIOB->AFR[0] &= ~(GPIO_AFRL_AFSEL6 | GPIO_AFRL_AFSEL7);
+    GPIOB->AFR[0] |= (4 << GPIO_AFRL_AFSEL6_Pos) | (4 << GPIO_AFRL_AFSEL7_Pos);
 }
 
-void Uart2Pins(void) //uart to PC
+void Uart2Pins(void)
 {
-	//A2 - TX, A3 - RX
+	// PA2 - TX, PA3 - RX
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
 
-	//Turn on clock for port A
-	if (!(RCC->AHBENR & RCC_AHBENR_GPIOAEN))
-	{
-		RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	}
+    GPIOA->MODER &= ~(GPIO_MODER_MODER2 | GPIO_MODER_MODER3);
+    GPIOA->MODER |= (GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1);
 
-	//alternate function
-	GPIOA->MODER &= ~(GPIO_MODER_MODER2 | GPIO_MODER_MODER3);
-	GPIOA->MODER |=  (GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1);
+    GPIOA->OSPEEDR |= (GPIO_OSPEEDR_OSPEED2_1 | GPIO_OSPEEDR_OSPEED3_1);
 
-	//push-pull
-	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_2 | GPIO_OTYPER_OT_3);
+    // PA2 no-pull, PA3 pull-up
+    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR2 | GPIO_PUPDR_PUPDR3);
+    GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_0;
 
-	//high speed
-	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR2 | GPIO_OSPEEDER_OSPEEDR3);
-	GPIOA->OSPEEDR |=  (GPIO_OSPEEDER_OSPEEDR2 | GPIO_OSPEEDER_OSPEEDR3);
-
-	//PA2 no-pull, PA3 pull-up
-	GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR2 | GPIO_PUPDR_PUPDR3);
-	GPIOA->PUPDR |=  (GPIO_PUPDR_PUPDR3_0);
-
-	//AF7 = UART
-	GPIOA->AFR[0] &= ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3);
-	GPIOA->AFR[0] |=  (0x7 << GPIO_AFRL_AFRL2_Pos) | (0x7 << GPIO_AFRL_AFRL3_Pos);
+    // AF7 = USART2
+    GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL2 | GPIO_AFRL_AFSEL3);
+    GPIOA->AFR[0] |= (7 << GPIO_AFRL_AFSEL2_Pos) | (7 << GPIO_AFRL_AFSEL3_Pos);
 }
 
-void Uart1Pins(void) //uart to GPS
+void Uart1Pins(void)
 {
-	//Turn on clock for port A
-	if (!(RCC->AHBENR & RCC_AHBENR_GPIOAEN))
-	{
-		RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	}
+    // PA9 (TX), PA10 (RX)
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
 
-	//Alternate Function
-	GPIOA->MODER &= ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10);
-	GPIOA->MODER |=  (GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1);
+    // --- PA9 (TX) ---
+    GPIOA->MODER &= ~GPIO_MODER_MODER9;
+    GPIOA->MODER |= GPIO_MODER_MODER9_1; // AF
 
-	//Push-Pull
-	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_9 | GPIO_OTYPER_OT_10);
+    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED9_1; // High Speed
 
-	//High speed
-	GPIOA->OSPEEDR |=  (GPIO_OSPEEDER_OSPEEDR9 | GPIO_OSPEEDER_OSPEEDR10);
+    // AF7  USART1  PA9
+    GPIOA->AFR[1] &= ~GPIO_AFRH_AFSEL9;
+    GPIOA->AFR[1] |= (7 << GPIO_AFRH_AFSEL9_Pos);
 
-	////PA9 no-pull, PA10 pull-up
-	GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR9 | GPIO_PUPDR_PUPDR10);
-	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR10_0;
+    // --- PA10 (RX) ---
+    GPIOA->MODER &= ~GPIO_MODER_MODER10;
+    GPIOA->MODER |= GPIO_MODER_MODER10_1; // AF
 
-	//AF7 = UART
-	GPIOA->AFR[1] &= ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2);
-	GPIOA->AFR[1] |=  ((0x7 << GPIO_AFRH_AFRH1_Pos) | (0x7 << GPIO_AFRH_AFRH2_Pos));
+    GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR10;
+    GPIOA->PUPDR |= GPIO_PUPDR_PUPDR10_0; // Pull-up
+
+    // AF7  USART1  PA10
+    GPIOA->AFR[1] &= ~GPIO_AFRH_AFSEL10;
+    GPIOA->AFR[1] |= (7 << GPIO_AFRH_AFSEL10_Pos);
 }
 
-void Init_GPIO_Interrupt(void) // PA1 external interrupt for BMI160 INT1
+void Uart6Pins(void)
 {
-	//Turn on clock for port A
-	if (!(RCC->AHBENR & RCC_AHBENR_GPIOAEN))
-	{
-		RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	}
+	// PA11 - TX, PA12 - RX
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
 
-    // PA1 input
-    GPIOA->MODER &= ~(GPIO_MODER_MODER1);
+    GPIOA->MODER &= ~(GPIO_MODER_MODER11 | GPIO_MODER_MODER12);
+    GPIOA->MODER |= (GPIO_MODER_MODER11_1 | GPIO_MODER_MODER12_1);
 
-    // PA1 pull-down
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR1);
-    GPIOA->PUPDR |=  (GPIO_PUPDR_PUPDR1_1);   // 10 = pull-down
+    // AF8  USART6
+    GPIOA->AFR[1] &= ~(GPIO_AFRH_AFSEL11 | GPIO_AFRH_AFSEL12);
+    GPIOA->AFR[1] |= (8 << GPIO_AFRH_AFSEL11_Pos) | (8 << GPIO_AFRH_AFSEL12_Pos);
+}
 
-    // turn on SYSCFG
+void Init_GPIO_Interrupt(void)
+{
+	// PB2 external interrupt
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 
-    // connect EXTI1 to PA1
-    SYSCFG->EXTICR[0] &= ~(SYSCFG_EXTICR1_EXTI1);
-    SYSCFG->EXTICR[0] |=  (SYSCFG_EXTICR1_EXTI1_PA);
+    // PB2 input
+    GPIOB->MODER &= ~(GPIO_MODER_MODER2);
 
-    // activate EXTI1
-    EXTI->IMR |= (1 << 1);
+    // PB2 pull-down
+    GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPDR2);
+    GPIOB->PUPDR |= GPIO_PUPDR_PUPDR2_1;
 
-    // Rising edge only
-    EXTI->RTSR |= (1 << 1);
-    EXTI->FTSR &= ~(1 << 1);
+    // Connect EXTI2 to PB2
+    SYSCFG->EXTICR[0] &= ~(SYSCFG_EXTICR1_EXTI2);
+    SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI2_PB;
 
-    // clear flags
-    EXTI->PR |= (1 << 1);
+    // EXTI Configuration
+    EXTI->IMR |= EXTI_IMR_MR2;
+    EXTI->RTSR |= EXTI_RTSR_TR2; // Rising edge
+    EXTI->PR |= EXTI_PR_PR2;     // Clear pending flag
 
-    // NVIC
-    NVIC_SetPriority(EXTI1_IRQn, 2);
-    NVIC_EnableIRQ(EXTI1_IRQn);
+    // NVIC  EXTI2
+    NVIC_SetPriority(EXTI2_IRQn, 2);
+    NVIC_EnableIRQ(EXTI2_IRQn);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

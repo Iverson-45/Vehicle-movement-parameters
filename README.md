@@ -14,20 +14,28 @@ Torque [Nm]
 Inclination[°]
 
 
-Hardware:
-----------------------
+Hardware Architecture
+-----
 
-Microcontroller: STM32F303K8
+The system uses a Dual-MCU architecture to effectively split the processing and logging workload, ensuring high data throughput and display responsiveness.
 
-GPS module: U-blox NEO-M8N
+1. Main MCU (Data Processor)
 
-IMU + GYRO: BMI160
+    Microcontroller: STM32F411CEU6
 
-Display: 2.54 inch LCD 128x64 ST7567s
+    Role: Handles all sensor data acquisition, complex sensor fusion algorithms (e.g., Complementary Filter for Inclination), and parameter calculation.
 
-Stages:
---------
+    Sensors: U-blox NEO-M8N (GPS) and BMI160 (IMU + Gyro).
 
-Display speed
+2. Secondary MCU (Display & Logger)
 
-![lcd](https://github.com/user-attachments/assets/4d3fb77a-be4d-41bc-baa1-7e233f1c2779)
+    Microcontroller: STM32??
+
+    Role: Receives processed data from the Main MCU.
+
+    Output: Drives the 2-inch TFT SPI Display and handles SD Card data logging.
+
+
+Communication
+
+    The two MCUs communicate via UART protocol.

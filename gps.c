@@ -1,7 +1,7 @@
 #include "gps.h"
 
 
-volatile char buffer[128];
+volatile char GPSbuffer[128];
 
 volatile uint8_t gps_ready_flag = 0;
 
@@ -33,7 +33,7 @@ void UBX_SendCommand(const uint8_t *data, uint16_t len)
 {
     for(uint16_t i=0; i<len; i++)
     {
-        UART1_SendByte(data[i]);
+    	UART2_SendByte(data[i]);
     }
 }
 
@@ -59,28 +59,35 @@ void GPS_Init(void)
     UBX_SendCommand(UBX_MSG_ENABLE_VTG, sizeof(UBX_MSG_ENABLE_VTG));
 }
 
-void USART1_EXTI25_IRQHandler(void)
+void USART2_IRQHandler(void)
 {
-	static uint8_t index =0;
+    static uint8_t index = 0;
 
-	if (USART1->ISR & USART_ISR_RXNE)
-	{
-		if(USART1->RDR == '\n')
-		{
-			buffer[index] = '\0';
+    if (USART2->SR & USART_SR_RXNE)
+    {
+        uint8_t received_byte = (uint8_t)USART2->DR;
 
-			gps_ready_flag = 1;
-
-			index = 0;
-		}
-
-		else
-		{
-			buffer[index] = USART1->RDR;
-
+        if (received_byte == '\n' || received_byte == '\r')
+        {
+            if (index > 0)
+            {
+                GPSbuffer[index] = '\0';
+                gps_ready_flag = 1;
+                index = 0;
+            }
+        }
+        else
+        {
+			GPSbuffer[index] = received_byte;
 			index++;
-		}
-	}
+        }
+    }
+
+
+    if (USART2->SR & (USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE))
+    {
+        (void)USART2->DR;
+    }
 }
 
 
@@ -88,7 +95,7 @@ float ParseSpeed(void)
 {
 	uint8_t CommaCounter = 0;
 
-	char *p = buffer;
+	char *p = GPSbuffer;
 
 	while(*p != '\0' && CommaCounter < 7)
 	{
