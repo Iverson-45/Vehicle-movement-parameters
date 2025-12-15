@@ -1,25 +1,26 @@
 #include "main.h"
 
+void SystemInit(void)
+{
+	//FPU on
+	SCB->CPACR |= (0xF << 20);
+}
+
 typedef struct {
 	float x, y, z;
 }vector;
 
-const float alpha = 0.8;
+uint8_t calibration = 1;
+uint16_t calibration_count = 0;
+const uint16_t calibration_samples = 0.005f;
 
-const float dt = 0.01;
-
-const float friction = 0.95;
-
-uint8_t first_reading = 1;
+float cos_roll = 1.0f, sin_roll = 0.0f;
+float cos_pitch = 1.0f, sin_pitch = 0.0f;
 
 int main(void)
 {
-	//FPU on
-	SCB->CPACR |= (0xF << 20);
-
 	SystemClock_Config_100MHz();
-
-    SysTick_Config(100000000 / 1000000);
+	SysTick_Config(98000000 / 1000000);
 
     Uart6_Init();
     Uart2_Init();
@@ -31,24 +32,38 @@ int main(void)
     BMI160_Init();
 
     delay_ms(200);
-
     UART_SendString(USART1, "Start\n\r");
 
-    char BMIread[64];
+    char buffer[64];
+    char LCDspeed[32];
 
-    BMI160_Data imu;
+    const float alpha = 0.96f;
+    const float alpha_g = 0.8f;
+    const float dt = 0.01f;
+    const float friction = 0.95f;
+    const float RadToDeg = 57.29578f;
+    const float DegToRad = 0.0174533f;
 
-    vector gravity;
+    BMI160_Data imu = {0,0,0};
 
-    vector acceleration;
+    vector gyro_bias = {0,0,0}; //Błąd spoczynkowy żyroskopu
+    vector current_angle = {0,0,0}; //Aktaulny wylicvzony kąt
+    vector start_offset = {0,0,0}; //Kąt początkowy
+    vector angle = {0,0,0}; //Kąt
 
-    vector ImuVelocity;
-
-    vector degrees;
+    vector gravity = {0,0,0};
+    vector acceleration = {0,0,0};
+    vector imu_velocity = {0,0,0};
 
     float scalar_acceleration = 0;
 
-    char LCDspeed[32];
+    float gx=0, gy=0, gz=0;
+
+    float acc_roll=0;
+    float acc_pitch=0;
+
+    float virt_ax, virt_ay, virt_az;
+	float virt_gx, virt_gy, virt_gz;
 
     while(1)
 	{
@@ -69,85 +84,106 @@ int main(void)
 			{
 				BMI160_ReadData(&imu);
 
-				if(first_reading)
+				if(calibration)
 				{
-					gravity.x = imu.ax;
-					gravity.y = imu.ay;
-					gravity.z = imu.az;
+					gyro_bias.x += imu.gx;
+					gyro_bias.y += imu.gy;
+					gyro_bias.z += imu.gz;
 
-					degrees.x = imu.gx*dt;
-					degrees.y = imu.gy*dt;
-					degrees.z = imu.gz*dt;
+					gravity.x += imu.ax;
+					gravity.y += imu.ay;
+					gravity.z += imu.az;
 
-					first_reading = 0;
+					calibration_count ++;
+
+					if(calibration_count >= 200)
+					{
+						gyro_bias.x *= calibration_samples;
+						gyro_bias.y *= calibration_samples;
+						gyro_bias.z *= calibration_samples;
+
+						gravity.x *= calibration_samples;
+						gravity.y *= calibration_samples;
+						gravity.z *= calibration_samples;
+
+						float start_roll = atan2f(gravity.y, gravity.z);
+						float start_pitch = atan2f(-gravity.x, sqrtf(gravity.y*gravity.y + gravity.z*gravity.z));
+
+						cos_roll = cosf(start_roll);
+						sin_roll = sinf(start_roll);
+						cos_pitch = cosf(start_pitch);
+						sin_pitch = sinf(start_pitch);
+
+						gravity.x = 0;
+						gravity.y = 0;
+						gravity.z = sqrtf(gravity.x*gravity.x + gravity.y*gravity.y + gravity.z*gravity.z); // ok. 1g (lub LSB)
+
+						// Zerujemy aktualny kąt - startujemy od zera
+						current_angle.x = 0;
+						current_angle.y = 0;
+						current_angle.z = 0;
+
+						calibration = 0;
+					}
+					bmi160_data_ready = 0;
+					continue;
 				}
 
-				//Low pass filter 1 - alpha
-				gravity.x = alpha * gravity.x + (1.0f - alpha) * imu.ax;
-				gravity.y = alpha * gravity.y + (1.0f - alpha) * imu.ay;
-				gravity.z = alpha * gravity.z + (1.0f - alpha) * imu.az;
+				gx = imu.gx - gyro_bias.x;
+				gy = imu.gy - gyro_bias.y;
+				gz = imu.gz - gyro_bias.z;
+
+				if (fabsf(gx) < 1.f) gx = 0.0f;
+				if (fabsf(gy) < 1.f) gy = 0.0f;
+				if (fabsf(gz) < 1.f) gz = 0.0f;
+
+				acc_roll  = atan2f(imu.ay, imu.az) * RadToDeg;
+				acc_pitch = atan2f(-imu.ax, sqrtf(imu.ay*imu.ay + imu.az*imu.az)) * RadToDeg;
+
+				current_angle.x = alpha * (current_angle.x + gx * dt) + (1.0f - alpha) * acc_roll;
+				current_angle.y = alpha * (current_angle.y + gy * dt) + (1.0f - alpha) * acc_pitch;
+				current_angle.z += gz * dt;
+
+				angle.x = current_angle.x - start_offset.x;
+				angle.y = current_angle.y - start_offset.y;
+				angle.z = current_angle.z;
+
+				gravity.x = alpha_g * gravity.x + (1.0f - alpha_g) * imu.ax;
+				gravity.y = alpha_g * gravity.y + (1.0f - alpha_g) * imu.ay;
+				gravity.z = alpha_g * gravity.z + (1.0f - alpha_g) * imu.az;
 
 				acceleration.x = imu.ax - gravity.x;
 				acceleration.y = imu.ay - gravity.y;
 				acceleration.z = imu.az - gravity.z;
 
-				//Ignoring dead zone
-				if (fabsf(acceleration.x) < 0.2f)
+				if (fabsf(acceleration.x) < 0.15f) acceleration.x = 0.0f;
+				if (fabsf(acceleration.y) < 0.15f) acceleration.y = 0.0f;
+				if (fabsf(acceleration.z) < 0.15f) acceleration.z = 0.0f;
+
+				imu_velocity.x += acceleration.x * dt;
+				imu_velocity.y += acceleration.y * dt;
+				imu_velocity.z += acceleration.z * dt;
+
+				imu_velocity.x *= friction;
+				imu_velocity.y *= friction;
+				imu_velocity.z *= friction;
+
+				float v_sq = imu_velocity.x*imu_velocity.x + imu_velocity.y*imu_velocity.y + imu_velocity.z*imu_velocity.z;
+				if(v_sq > 0.001f)
 				{
-				    acceleration.x = 0.0f;
+					scalar_acceleration = (acceleration.x * imu_velocity.x + acceleration.y * imu_velocity.y + acceleration.z * imu_velocity.z) / sqrtf(v_sq);
+				}
+				else
+				{
+					scalar_acceleration = 0;
 				}
 
-				if (fabsf(acceleration.y) < 0.2f)
-				{
-				    acceleration.y = 0.0f;
-				}
-
-				if (fabsf(acceleration.z) < 0.2f)
-				{
-				    acceleration.z = 0.0f;
-				}
-
-				//Integrating acceleration to get velocity
-				ImuVelocity.x += acceleration.x *dt;
-				ImuVelocity.y += acceleration.y *dt;
-				ImuVelocity.z += acceleration.z *dt;
-
-				ImuVelocity.x *= friction;
-				ImuVelocity.y *= friction;
-				ImuVelocity.z *= friction;
-
-
-				if(sqrt(ImuVelocity.x*ImuVelocity.x + ImuVelocity.y*ImuVelocity.y + ImuVelocity.z*ImuVelocity.z ) > 0)
-				{
-					// a_scalar = (a * v)/|v|
-					scalar_acceleration = ((acceleration.x * ImuVelocity.x) + (acceleration.y * ImuVelocity.y) + (acceleration.z * ImuVelocity.z))
-											/sqrt((ImuVelocity.x*ImuVelocity.x) + (ImuVelocity.y*ImuVelocity.y) + (ImuVelocity.z*ImuVelocity.z));
-				}
-
-				if(fabsf(imu.gx) >=2)
-				{
-					degrees.x += imu.gx*dt;
-				}
-
-				if(fabsf(imu.gy) >=1)
-				{
-					degrees.y += imu.gy*dt;
-				}
-
-				if(fabsf(imu.gz) >=1)
-				{
-					degrees.z += imu.gz*dt;
-				}
-
-
-				//sprintf(BMIread, "Acceleration: %.2f [m/s^2] \r\n",scalar_acceleration);
-				sprintf(BMIread,"gx: %.2f, gy: %.2f, gz: %.2f,  ax: %.2f, ay:%.2f, az: %.2f\r\n", degrees.x, degrees.y, degrees.z, acceleration.x, acceleration.y, acceleration.z);
-				UART_SendString(USART1, BMIread);
-
-
-
+				sprintf(buffer, "dRoll: %.2f, dPitch: %.2f, dYaw: %.2f | Acc: %.2f\r\n",
+						angle.x, angle.y, angle.z, scalar_acceleration);
+				UART_SendString(USART1, buffer);
 
 				bmi160_data_ready = 0;
+
 			}
 	}
 }
