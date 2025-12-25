@@ -1,6 +1,6 @@
 #include "clock.h"
 
-void SystemClock_Config_100MHz(void)
+void SystemClock_Config(void)
 {
 	RCC->CR |= RCC_CR_HSEON;
 	while (!(RCC->CR & RCC_CR_HSERDY));

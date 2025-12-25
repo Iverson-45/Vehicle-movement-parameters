@@ -3,7 +3,7 @@
 
 #include "stm32f4xx.h"
 
-void SystemClock_Config_100MHz(void);
+void SystemClock_Config(void);
 
 
 #endif /* CLOCK_H_ */
