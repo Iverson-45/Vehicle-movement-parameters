@@ -162,6 +162,8 @@ int main(void)
 
 						UART_SendString(USART1, "Gravity OK. Syncing Step 1...\n\r");
 
+						delay_ms(2000);
+
 
 						while(lcd_ack_state != 2)
 						{
@@ -221,10 +223,14 @@ int main(void)
 					roll  = alpha  * acc_roll + (1.0f-alpha) * (roll + body_inclination.x *dt);
 					pitch = alpha * acc_pitch + (1.0f-alpha) * (pitch + body_inclination.y *dt);
 
-					acceleration = body_acceleration.x + (9.81f * sinf(pitch * 3.14159f / 180.0f));
-
 					if (fabsf(roll) < 1) roll =0.0f;
 					if (fabsf(pitch) < 1) pitch =0.0f;
+
+					acceleration = body_acceleration.x + (9.81f * sinf(pitch * 3.14159f / 180.0f));
+
+
+
+					if(fabsf(acceleration) <= 0.1f) acceleration = 0.0f;
 
 						sprintf(buffer, "Roll: %d, Pitch: %d, Acc: %.1f [m/s^2]\r\n", (int8_t)roll, (int8_t)pitch, acceleration);
 						UART_SendString(USART1, buffer);
@@ -240,4 +246,16 @@ int main(void)
 				}
 			}
     	}
+}
+
+void USART6_IRQHandler(void)
+{
+    if (USART6->SR & USART_SR_RXNE)
+    {
+        char rx = USART6->DR;
+
+        if (rx == 'd') lcd_ack_state = 1;
+        if (rx == '1') lcd_ack_state = 2;
+        if (rx == '2') lcd_ack_state = 3;
+    }
 }
