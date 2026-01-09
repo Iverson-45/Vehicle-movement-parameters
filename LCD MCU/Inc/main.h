@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOF
+#define ENC_BTN_Pin GPIO_PIN_0
+#define ENC_BTN_GPIO_Port GPIOA
 #define TFT_CS_Pin GPIO_PIN_1
 #define TFT_CS_GPIO_Port GPIOA
 #define VCP_TX_Pin GPIO_PIN_2
@@ -67,6 +69,10 @@ void Error_Handler(void);
 #define TFT_DC_GPIO_Port GPIOA
 #define TFT_RST_Pin GPIO_PIN_4
 #define TFT_RST_GPIO_Port GPIOA
+#define SD_CS_Pin GPIO_PIN_0
+#define SD_CS_GPIO_Port GPIOB
+#define SD_DETECT_Pin GPIO_PIN_1
+#define SD_DETECT_GPIO_Port GPIOB
 #define UART_TX_Pin GPIO_PIN_9
 #define UART_TX_GPIO_Port GPIOA
 #define UART_RX_Pin GPIO_PIN_10

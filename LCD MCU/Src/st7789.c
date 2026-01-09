@@ -503,30 +503,45 @@ void ST7789_WriteString(uint16_t x, uint16_t y, const char *str, FontDef font, u
  */
 void ST7789_DrawFilledRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
 {
-	ST7789_Select();
-	uint8_t i;
+    // 1. Zabezpieczenia granic ekranu
+    if (x >= ST7789_WIDTH || y >= ST7789_HEIGHT) return;
+    if ((x + w) > ST7789_WIDTH) w = ST7789_WIDTH - x;
+    if ((y + h) > ST7789_HEIGHT) h = ST7789_HEIGHT - y;
 
-	/* Check input parameters */
-	if (x >= ST7789_WIDTH ||
-		y >= ST7789_HEIGHT) {
-		/* Return error */
-		return;
-	}
+    // 2. Ustawienie okna rysowania (To funkcja statyczna w twoim pliku, więc zadziała)
+    // UWAGA: Ta funkcja w środku robi Select i Unselect, więc po jej wyjściu CS jest wysoki
+    ST7789_SetAddressWindow(x, y, x + w - 1, y + h - 1);
 
-	/* Check width and height */
-	if ((x + w) >= ST7789_WIDTH) {
-		w = ST7789_WIDTH - x;
-	}
-	if ((y + h) >= ST7789_HEIGHT) {
-		h = ST7789_HEIGHT - y;
-	}
+    // 3. Przygotowanie bufora danych (64 bajty na stosie - bezpieczne i szybkie)
+    uint8_t data[64];
+    uint8_t hi = color >> 8;
+    uint8_t lo = color & 0xFF;
 
-	/* Draw lines */
-	for (i = 0; i <= h; i++) {
-		/* Draw lines */
-		ST7789_DrawLine(x, y + i, x + w, y + i, color);
-	}
-	ST7789_UnSelect();
+    // Wypełniamy bufor kolorem
+    for (uint8_t i = 0; i < sizeof(data); i += 2) {
+        data[i] = hi;
+        data[i + 1] = lo;
+    }
+
+    // 4. Obliczenie ile bajtów wysłać
+    uint32_t pixels_count = (uint32_t)w * h;
+    uint32_t bytes_to_send = pixels_count * 2;
+
+    // 5. Właściwa transmisja
+    ST7789_Select();     // Musimy ręcznie wybrać ekran
+    ST7789_DC_Set();     // Tryb danych
+
+    while (bytes_to_send > 0) {
+        // Wysyłamy paczkami po max 64 bajty (wielkość bufora)
+        uint16_t chunk_size = (bytes_to_send > sizeof(data)) ? sizeof(data) : bytes_to_send;
+
+        // Bezpośredni strzał po SPI (najszybsza metoda blokująca)
+        HAL_SPI_Transmit(&ST7789_SPI_PORT, data, chunk_size, 100);
+
+        bytes_to_send -= chunk_size;
+    }
+
+    ST7789_UnSelect();   // Koniec transmisji
 }
 
 /**
