@@ -29,7 +29,7 @@ The system uses a Dual-MCU architecture to effectively split the processing and 
 
 2. Secondary MCU (Display & Logger)
 
-    Microcontroller: STM32??
+    Microcontroller: STM32f303k8
 
     Role: Receives processed data from the Main MCU.
 
@@ -37,5 +37,5 @@ The system uses a Dual-MCU architecture to effectively split the processing and 
 
 
 Communication
-
-    The two MCUs communicate via UART protocol.
+------------
+The two MCU's communicate witch each other by UART protocol exchanging information & data.
