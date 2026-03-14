@@ -12307,7 +12307,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Battery:BatteryHolder_MPD_BK-18650-PC2"
+		(property "Footprint" "Connector_JST:JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal"
 			(at 204.47 244.856 90)
 			(effects
 				(font
