@@ -8,5 +8,7 @@ int32_t StringToInt(const char *string);
 float   StringToFloat(const char *string);
 void    FloatToString(float value, char *buffer, int precision);
 void    Debug_Log(const char* format, ...);
+void    IntToString(int32_t value, char *buffer);
+
 
 #endif

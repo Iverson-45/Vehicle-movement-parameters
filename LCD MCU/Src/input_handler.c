@@ -6,11 +6,11 @@ static TIM_HandleTypeDef *hEncoderTimer;
 static int16_t previousEncoderCount = 0;
 static uint32_t lastButtonPressTime = 0;
 
-static uint8_t massInputBuffer[4] = {0, 0, 0, 0};
-static uint8_t inputCursorIndex = 0;
-static uint8_t menuSelection = 0;
-static uint16_t vehicleMassKg = 0;
-static uint8_t pauseMenuOption = 0; // 0=RESUME, 1=STOP, 2=EJECT
+uint8_t massInputBuffer[4] = {0, 0, 0, 0};
+uint8_t inputCursorIndex = 0;
+uint8_t menuSelection = 0;
+uint16_t vehicleMassKg = 0;
+uint8_t pauseMenuOption = 0;
 
 void Input_Init(TIM_HandleTypeDef *timerHandle)
 {
@@ -31,30 +31,24 @@ void Input_Process(AppState_t *currentState, uint8_t *refreshFlag)
         if (*currentState == STATE_MASS_INPUT)
         {
             int8_t newValue = massInputBuffer[inputCursorIndex] + direction;
-
             if (newValue > 9) newValue = 0;
             else if (newValue < 0) newValue = 9;
-
             massInputBuffer[inputCursorIndex] = (uint8_t)newValue;
             *refreshFlag = 1;
         }
         else if (*currentState == STATE_MENU)
         {
             int8_t selection = menuSelection + direction;
-
-            if (selection > 2) selection = 0;
-            else if (selection < 0) selection = 2;
-
+            if (selection > 1) selection = 0;
+            else if (selection < 0) selection = 1;
             menuSelection = (uint8_t)selection;
             *refreshFlag = 1;
         }
         else if (*currentState == STATE_MEASURE_OPT)
         {
             int8_t option = pauseMenuOption + direction;
-
             if (option > 2) option = 0;
             else if (option < 0) option = 2;
-
             pauseMenuOption = (uint8_t)option;
             *refreshFlag = 1;
         }
@@ -82,20 +76,22 @@ void Input_Process(AppState_t *currentState, uint8_t *refreshFlag)
                     *currentState = STATE_MENU;
                     *refreshFlag = 2;
                 }
-                else *refreshFlag = 1;
+                else
+                {
+                    *refreshFlag = 1;
+                }
             }
             else if (*currentState == STATE_MENU)
             {
                 if (menuSelection == 0)
+                {
                     *currentState = STATE_CALIBRATION;
+                }
                 else if (menuSelection == 1)
                 {
                     inputCursorIndex = 0;
                     *currentState = STATE_MASS_INPUT;
                 }
-                else if (menuSelection == 2)
-                    Logger_EjectCard();
-
                 *refreshFlag = 2;
             }
             else if (*currentState == STATE_MEASUREMENT)
@@ -108,6 +104,7 @@ void Input_Process(AppState_t *currentState, uint8_t *refreshFlag)
             {
                 if (pauseMenuOption == 0)
                 {
+                    /* RESUME */
                     *currentState = STATE_MEASUREMENT;
                     *refreshFlag = 2;
                 }
@@ -119,7 +116,7 @@ void Input_Process(AppState_t *currentState, uint8_t *refreshFlag)
                 else if (pauseMenuOption == 2)
                 {
                     Logger_EjectCard();
-                    *currentState = STATE_MENU;
+                    *currentState = STATE_MEASUREMENT;
                     *refreshFlag = 2;
                 }
             }
@@ -127,9 +124,3 @@ void Input_Process(AppState_t *currentState, uint8_t *refreshFlag)
         }
     }
 }
-
-uint16_t Input_GetVehicleMass(void)      { return vehicleMassKg; }
-uint8_t  Input_GetMenuSelection(void)    { return menuSelection; }
-uint8_t  Input_GetInputCursorIndex(void) { return inputCursorIndex; }
-uint8_t* Input_GetInputBuffer(void)      { return massInputBuffer; }
-uint8_t  Input_GetPauseMenuOption(void)  { return pauseMenuOption; }

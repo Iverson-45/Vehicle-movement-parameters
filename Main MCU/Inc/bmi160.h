@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "gpio.h"
 
-#define BMI160_ADDR 0x69
+#define BMI160_ADDR 0x68 //0x69
 
 typedef struct {
     float ax, ay, az;

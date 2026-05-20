@@ -26,4 +26,3 @@ void delay_ms(uint32_t ms)
 		delay_us(ms);
 	}
 }
-

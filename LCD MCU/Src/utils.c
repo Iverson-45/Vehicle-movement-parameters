@@ -92,3 +92,35 @@ void FloatToString(float value, char *buffer, int precision)
     }
     *buffer = 0;
 }
+
+void IntToString(int32_t value, char *buffer)
+{
+    char temp[12];
+    int i = 0;
+    int j = 0;
+
+    if (value == 0)
+    {
+        buffer[0] = '0';
+        buffer[1] = 0;
+        return;
+    }
+
+    if (value < 0)
+    {
+        buffer[j++] = '-';
+        value = -value;
+    }
+
+    while (value > 0)
+    {
+        temp[i++] = (value % 10) + '0';
+        value /= 10;
+    }
+
+    while (i > 0)
+    {
+        buffer[j++] = temp[--i];
+    }
+    buffer[j] = 0;
+}

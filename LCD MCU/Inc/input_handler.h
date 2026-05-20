@@ -14,13 +14,13 @@ typedef enum {
     STATE_MEASURE_OPT
 } AppState_t;
 
+extern uint16_t vehicleMassKg;
+extern uint8_t  menuSelection;
+extern uint8_t  inputCursorIndex;
+extern uint8_t  massInputBuffer[4];
+extern uint8_t  pauseMenuOption;
+
 void Input_Init(TIM_HandleTypeDef *timerHandle);
 void Input_Process(AppState_t *currentState, uint8_t *refreshFlag);
-
-uint16_t Input_GetVehicleMass(void);
-uint8_t  Input_GetMenuSelection(void);
-uint8_t  Input_GetInputCursorIndex(void);
-uint8_t* Input_GetInputBuffer(void);
-uint8_t  Input_GetPauseMenuOption(void);
 
 #endif

@@ -104,4 +104,3 @@ void I2C_WriteRegister(uint8_t addr, uint8_t reg_addr, const uint8_t* data, uint
 
 
 
-
