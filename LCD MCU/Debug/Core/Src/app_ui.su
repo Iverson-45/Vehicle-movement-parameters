@@ -1,0 +1,15 @@
+../Core/Src/app_ui.c:22:13:SelectDisplay	8	static
+../Core/Src/app_ui.c:27:13:DrawCenteredText	48	static
+../Core/Src/app_ui.c:33:13:DrawRightAlignedText	40	static
+../Core/Src/app_ui.c:40:13:DrawThickPinkBorder	16	static
+../Core/Src/app_ui.c:53:13:DrawArrow	48	static
+../Core/Src/app_ui.c:77:6:UI_Init	8	static
+../Core/Src/app_ui.c:84:6:UI_ShowSplashScreen	24	static
+../Core/Src/app_ui.c:98:6:UI_ShowSplashPrompt	16	static
+../Core/Src/app_ui.c:104:6:UI_ShowConnectionStatus	32	static
+../Core/Src/app_ui.c:133:13:RenderMassInputScreen	48	static
+../Core/Src/app_ui.c:160:13:RenderMainMenu	32	static
+../Core/Src/app_ui.c:180:13:RenderPauseMenu	32	static
+../Core/Src/app_ui.c:204:13:RenderCalibration	24	static
+../Core/Src/app_ui.c:228:13:RenderDashboard	72	static
+../Core/Src/app_ui.c:350:6:UI_Update	24	static

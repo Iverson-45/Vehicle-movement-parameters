@@ -1,0 +1,9 @@
+../Core/Src/sd_logger.c:22:9:Logger_IsFileOpen	1
+../Core/Src/sd_logger.c:27:6:Logger_Init	1
+../Core/Src/sd_logger.c:38:6:Logger_CheckConnection	5
+../Core/Src/sd_logger.c:55:9:Logger_StartNewFile	9
+../Core/Src/sd_logger.c:104:6:Logger_AddData	13
+../Core/Src/sd_logger.c:155:6:Logger_FlushBuffer	8
+../Core/Src/sd_logger.c:190:6:Logger_StopRecording	4
+../Core/Src/sd_logger.c:206:6:Logger_EjectCard	2
+../Core/Src/sd_logger.c:218:13:Logger_GetStatus	3

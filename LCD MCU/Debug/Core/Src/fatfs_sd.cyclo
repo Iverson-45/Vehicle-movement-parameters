@@ -1,0 +1,11 @@
+../Core/Src/fatfs_sd.c:17:16:SPI_ReceiveByte	2
+../Core/Src/fatfs_sd.c:24:13:SPI_TransmitByte	1
+../Core/Src/fatfs_sd.c:31:16:SD_WaitReady	3
+../Core/Src/fatfs_sd.c:45:16:SD_SendCommand	6
+../Core/Src/fatfs_sd.c:69:16:SD_ReadBlock	5
+../Core/Src/fatfs_sd.c:92:16:SD_WriteBlock	8
+../Core/Src/fatfs_sd.c:127:9:SD_disk_initialize	14
+../Core/Src/fatfs_sd.c:168:9:SD_disk_status	1
+../Core/Src/fatfs_sd.c:170:9:SD_disk_read	10
+../Core/Src/fatfs_sd.c:202:9:SD_disk_write	10
+../Core/Src/fatfs_sd.c:233:9:SD_disk_ioctl	10

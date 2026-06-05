@@ -1,0 +1,9 @@
+../Core/Src/sd_logger.c:22:9:Logger_IsFileOpen	4	static
+../Core/Src/sd_logger.c:27:6:Logger_Init	8	static
+../Core/Src/sd_logger.c:38:6:Logger_CheckConnection	8	static
+../Core/Src/sd_logger.c:55:9:Logger_StartNewFile	32	static
+../Core/Src/sd_logger.c:104:6:Logger_AddData	56	static
+../Core/Src/sd_logger.c:155:6:Logger_FlushBuffer	16	static
+../Core/Src/sd_logger.c:190:6:Logger_StopRecording	16	static
+../Core/Src/sd_logger.c:206:6:Logger_EjectCard	8	static
+../Core/Src/sd_logger.c:218:13:Logger_GetStatus	4	static
